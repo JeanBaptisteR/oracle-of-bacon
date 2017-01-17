@@ -14,10 +14,10 @@ public class RedisRepository {
 
     public void addSearch(String search) {
         jedis.lpush("searches", search);
-        if(jedis.llen("searches") > 10) jedis.rpop("searches");
     }
 
     public List<String> getLastTenSearches() {
+        jedis.ltrim("searches", 0, 9);
         return jedis.lrange("searches", 0, 9);
     }
 }
