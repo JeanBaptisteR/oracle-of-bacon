@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="form-container">
-      <input placeHolder="Type Actor Name Here" class="actor-name" v-model="searchInput" @keypress.enter="search(searchInput)" @keypress="suggest(searchInput)"></input>
+      <input placeHolder="Type Actor Name Here" class="actor-name" v-model="searchInput" @keypress.enter="search(searchInput)" @keyup="suggest(searchInput)"></input>
       <button class="search-button" @click="search(searchInput)">Search</button>
       <div v-show="searchInput" class="suggest" >
         <div v-for="suggest in suggests" class="suggest-item" @click="search(suggest)">{{suggest}}</div>

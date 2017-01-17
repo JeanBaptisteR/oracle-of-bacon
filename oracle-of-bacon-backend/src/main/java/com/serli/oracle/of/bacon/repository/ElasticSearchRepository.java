@@ -36,7 +36,7 @@ public class ElasticSearchRepository {
 
 	public List<String> getActorsSuggests(String searchQuery) {
 		try {
-			String queryTerm = "{ \"query\" : { \"match\": { \"name\": \"" + searchQuery + "\" } } }";
+			String queryTerm = "{ \"query\" : { \"match\": { \"name\" :  { \"query\": \"" + searchQuery + "\" , \"operator\" : \"and\" } } } }";
 			Search search = new Search.Builder(queryTerm).addIndex(INDEX_NAME).addType(TYPE_NAME).build();
 			SearchResult result = jestClient.execute(search);
 			return result.getHits(JsonObject.class).stream().map(json -> json.source.get("name").getAsString())
