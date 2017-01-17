@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.serli.oracle.of.bacon.repository.ElasticSearchRepository;
 
 import io.searchbox.client.JestClient;
@@ -16,9 +18,11 @@ import io.searchbox.core.Index;
 
 public class CompletionLoader {
 
-	private static int BULK_SIZE = 100000;
+	private static int BULK_SIZE = 50000;
 
 	private static AtomicInteger count = new AtomicInteger(0);
+
+	private static JestClient client;
 
 	public static void main(String[] args) throws IOException {
 		if (args.length != 1) {
@@ -28,34 +32,30 @@ public class CompletionLoader {
 		}
 
 		String inputFilePath = args[0];
-
-		JestClient client = ElasticSearchRepository.createClient();
+		client = ElasticSearchRepository.createClient();
 
 		try (BufferedReader bufferedReader = Files.newBufferedReader(Paths.get(inputFilePath))) {
-			Bulk.Builder builder = new Bulk.Builder();
-			List<String> lines = bufferedReader.lines().skip(1).collect(Collectors.toList());
-			for (String actorName : lines) {
-				addAction(builder, actorName);
-				if (count.getAndIncrement() % BULK_SIZE == 0) {
-					executeBulk(client, builder, lines.size());
-					builder = new Bulk.Builder();
-				}
-			}
-			executeBulk(client, builder, lines.size());
+			Lists.partition(bufferedReader.lines().skip(1).collect(Collectors.toList()), BULK_SIZE).stream()
+					.forEach(CompletionLoader::executeBulkIndex);
 		}
 		System.out.println("Inserted total of " + count.get() + " actors");
 	}
 
-	private static void executeBulk(JestClient client, Bulk.Builder builder, int size) throws IOException {
-		Bulk bulk = builder.build();
-		System.out.println("Bulk created");
-		client.execute(bulk);
-		System.out.println("Bulk executed (" + count.get() + "/" + size + " lines)");
-	}
+	private static void executeBulkIndex(List<String> actorList) {
+		Bulk bulkAction = actorList.stream()//
+				.map((actorName) -> new Index.Builder(ImmutableMap.of("name", actorName))//
+						.index(ElasticSearchRepository.INDEX_NAME)//
+						.type(ElasticSearchRepository.TYPE_NAME).build())//
+				.collect(Collectors.collectingAndThen(//
+						Collectors.toList(), //
+						(actions) -> new Bulk.Builder().addAction(actions).build()));
+		try {
+			client.execute(bulkAction);
+			count.set(count.get() + actorList.size());
+			System.out.println("Bulk executed ( total " + count.get() + " actors indexed)");
+		} catch (IOException e) {
+			System.err.println("Problem executing bulk action " + e.getMessage());
+		}
 
-	private static void addAction(Bulk.Builder builder, String actorName) {
-		builder.addAction(new Index.Builder(//
-				new StringBuilder("{ \"name\": ").append(actorName).append(" }").toString()//
-		).index(ElasticSearchRepository.INDEX_NAME).type(ElasticSearchRepository.TYPE_NAME).build());
 	}
 }

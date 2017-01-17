@@ -12,17 +12,17 @@ import com.mongodb.client.MongoDatabase;
 
 public class MongoDbRepository {
 
-    private final MongoClient mongoClient;
-    private MongoDatabase workshop;
+	private final MongoClient mongoClient;
+	private MongoDatabase workshop;
 
-    public MongoDbRepository() {
-        mongoClient = new MongoClient("localhost", 27017);
-        workshop = mongoClient.getDatabase("workshop");
-    }
+	public MongoDbRepository() {
+		mongoClient = new MongoClient("localhost", 27017);
+		workshop = mongoClient.getDatabase("workshop");
+	}
 
-    public Optional<Document> getActorByName(String name) {
-        MongoCollection<Document> actors = workshop.getCollection("actors");
-        Document document = actors.find(eq("name", name)).first();
-        return document!=null?Optional.of(document):Optional.empty();
-    }
+	public Optional<Document> getActorByName(String name) {
+		MongoCollection<Document> actors = workshop.getCollection("actors");
+		Document document = actors.find(eq("name", name)).first();
+		return document != null ? Optional.of(document) : Optional.empty();
+	}
 }
