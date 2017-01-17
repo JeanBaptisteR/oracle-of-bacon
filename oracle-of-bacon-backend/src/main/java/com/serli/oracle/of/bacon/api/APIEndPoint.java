@@ -25,9 +25,9 @@ public class APIEndPoint {
 
 	@Get("bacon-to?actor=:actorName")
 	public List<?> getConnectionsToKevinBacon(String actorName) {
+		redisRepository.addSearch(actorName);
 		return this.neo4JRepository.getConnectionsToKevinBacon(actorName);
 	}
-        redisRepository.addSearch(actorName);
 	@Get("suggest?q=:searchQuery")
 	public List<String> getActorSuggestion(String searchQuery) {
 		return Arrays.asList("Niro, Chel", "Senanayake, Niro", "Niro, Juan Carlos", "de la Rua, Niro", "Niro, Simão");
