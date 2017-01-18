@@ -29,7 +29,7 @@ public class Neo4JRepository {
 	private static final String VALUE_PLAYED_IN = "PLAYED_IN";
 
 	private static final String ACTOR_PARAM = "actorName";
-	private static final String SEARCH_REQUEST = "MATCH" + //
+	private static final String SEARCH_REQUEST = "MATCH " + //
 			"path = shortestPath( (bacon:Actor {name:\"Bacon, Kevin (I)\"})-[PLAYED_IN*]-(other:Actor {name:{actorName}}) )" + //
 			"RETURN path";
 
